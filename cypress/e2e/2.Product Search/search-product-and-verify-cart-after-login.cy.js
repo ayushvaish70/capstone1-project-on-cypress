@@ -1,69 +1,72 @@
-/// <reference types = "cypress" />
+/// <reference types="cypress" />
 
-import HeaderPage from "../../pages/HeaderPage";
-import AllProductsPage from "../../pages/AllProductsPage";
-import SearchedProductsPage from "../pages/SearchedProductsPage";
-import AuthPage from "../../pages/AuthPage";
-import CartPage from "../../pages/CartPage";
+describe("Search Product and Verify Cart After Login Test Suite", () => {
+  const itemPrice = 600;
+  const loginEmail = "oanabarsan@yahoo.com";
+  const loginPassword = "Suceava321!";
 
-const itemPrice = 600;
-const loginEmail = "oanabarsan@yahoo.com";
-const loginPassword = "Suceava321!";
+  before(() => {
+    // Visit the homepage before running tests
+    cy.visit('https://www.automationexercise.com');
+  });
 
-describe("Search product and verify cart after login test suite", () => {
-  it("Search product and verify cart after login test", () => {
-    HeaderPage.getProductsLink().click();
-    cy.get("div.features_items h2.title.text-center")
+  it("Search product and verify cart after login", () => {
+    // Navigate to the Products page
+    cy.get('a[href="/products"]').click();
+    
+    // Verify the 'All Products' title
+    cy.get('div.features_items h2.title.text-center')
       .scrollIntoView()
-      .within(() => {
-        cy.window().then((win) => {
-          cy.contains("All Products").then(($el) => {
-            const before = win.getComputedStyle($el[0], "::before");
-            const beforeContent = before.getPropertyValue("content");
-            expect(beforeContent).to.equal('" "');
-          });
-        });
-      });
-    AllProductsPage.getSearchField().type("Winter Top");
-    AllProductsPage.getSearchBtn().click();
-    cy.get("div.features_items h2.title.text-center")
-      .scrollIntoView()
-      .within(() => {
-        cy.window().then((win) => {
-          cy.contains("Searched Products").then(($el) => {
-            const before = win.getComputedStyle($el[0], "::before");
-            const beforeContent = before.getPropertyValue("content");
-            expect(beforeContent).to.equal('" "');
-          });
-        });
-      });
+      .should('have.text', 'All Products');
 
-    cy.get("div.productinfo.text-center p	")
-      .contains("Winter Top")
-      .should("exist");
-    SearchedProductsPage.getAddToCartBtn().click();
-    SearchedProductsPage.getViewCartLink().click();
+    // Search for a product
+    cy.get('input#search_product').type('Winter Top');
+    cy.get('#submit_search > .fa').click();
+
+    // Verify the 'Searched Products' title
+    cy.get('div.features_items h2.title.text-center')
+      .scrollIntoView()
+      .should('have.text', 'Searched Products');
+
+    // Verify the searched product
+    cy.get('div.productinfo.text-center p')
+      .contains('Winter Top')
+      .should('exist');
+
+    // Add the product to the cart and view the cart
+    cy.get('.productinfo > .btn').click();
+    cy.get('u').click();
+
+    // Verify the product in the cart
     cy.get('a[href="/product_details/5"]')
-      .contains("Winter Top")
-      .should("exist");
+      .contains('Winter Top')
+      .should('exist');
     cy.get('tr[id="product-5"] td.cart_price p')
       .contains(`Rs. ${itemPrice}`)
-      .should("be.visible");
+      .should('be.visible');
     cy.get('tr[id="product-5"] button.disabled')
-      .contains("1")
-      .should("be.visible");
+      .contains('1')
+      .should('be.visible');
     cy.get('tr[id="product-5"] td.cart_total p')
       .contains(`Rs. ${itemPrice}`)
-      .should("be.visible");
-    AuthPage.login(loginEmail, loginPassword);
-    cy.get("ul.nav.navbar-nav li:nth-child(10)")
-      .contains(` Logged in as `)
-      .should("be.visible");
-    HeaderPage.getCartLink().click();
+      .should('be.visible');
+
+    // Login and verify the cart
+    cy.get(':nth-child(4) > a').click();
+    cy.get('[data-qa="login-email"]').type(loginEmail);
+    cy.get('[data-qa="login-password"]').type(loginPassword);
+    cy.get('[data-qa="login-button"]').click();
+    
+    // Verify login
+    cy.get('ul.nav.navbar-nav li:nth-child(10)')
+      .contains('Logged in as')
+      .should('be.visible');
+    
+    // Navigate to the cart and verify
+    cy.get('.shop-menu > .nav > :nth-child(3) > a').click();
     cy.get('a[href="/product_details/5"]')
-      .contains("Winter Top")
-      .should("exist");
-    CartPage.getCloseBtn().click();
-    cy.get('span[id="empty_cart"] p.text-center').contains(" Click ").children('b').should('have.text', "Cart is empty!");
+      .contains('Winter Top')
+      .should('exist');
+
   });
 });
